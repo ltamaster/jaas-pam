@@ -1,0 +1,17 @@
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: 'java-library-distribution'
+
+ext.jettyVersion="6.1.21"
+version="0.1"
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+
+    compile(
+            [group: 'org.mortbay.jetty', name: 'jetty-plus', version: ext.jettyVersion, ext: 'jar'],
+    )
+    compile( "org.kohsuke:libpam4j:1.7")
+}
