@@ -6,14 +6,52 @@ This project provides a JAAS LoginModule to authenticate via PAM
 Example JAAS configuration
 --------
 
+PAM for authentication:
+
     example {
-            com.simplifyops.jaas.pam.JettyPamLoginModule required
+        com.simplifyops.jaas.pam.JettyPamLoginModule required
             debug="true"
             service="sshd"
             supplementalRoles="user"
             useUnixGroups="true"
     ;
     };
+    
+
+
+Combining the JettyPamLoginModule for authentication and JettyRolePropertyFileLoginModule for authorization roles only:
+
+    combined {
+        com.simplifyops.jaas.pam.JettyPamLoginModule requisite
+            debug="true"
+            service="sshd"
+            supplementalRoles="user"
+            storePass="true"
+            useUnixGroups="true";
+
+        com.simplifyops.jaas.pam.JettyRolePropertyFileLoginModule required
+            debug="true"
+            useFirstPass="true"
+            file="/path/to/roles.properties";
+
+    };
+
+Use one property file for authentication, and one for authorization roles only:
+
+    roles_via_file {
+        com.simplifyops.jaas.pam.JettyAuthPropertyFileLoginModule requisite
+            debug="true"
+            storePass="true"
+            file="/path/to/users.properties";
+
+        com.simplifyops.jaas.pam.JettyRolePropertyFileLoginModule required
+            debug="true"
+            useFirstPass="true"
+            file="/path/to/roles.properties";
+
+    };
+    
+
 
 Install
 -------
