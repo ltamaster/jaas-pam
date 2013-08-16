@@ -61,8 +61,8 @@ Create your jaas configuration file as above.
 Copy the necessary jars into appropriate location, or add to your classpath:
 
 * `jaas-pam-0.1.jar`
-* `libpam4j-1.7.jar`
-* `jna-3.5.0.jar`
+* `libpam4j-1.5.jar`
+* `jna-3.2.2.jar`
 
 Build
 ------
