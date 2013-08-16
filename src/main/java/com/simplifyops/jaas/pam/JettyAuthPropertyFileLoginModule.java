@@ -14,12 +14,15 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Augments Jetty property file login module {@link PropertyFileLoginModule}, to only perform authentication
  * via property file login, handles shared credentials logic, and does not use property file roles.
  */
 public class JettyAuthPropertyFileLoginModule extends AbstractSharedLoginModule {
+    public static final Logger logger = Logger.getLogger(JettyAuthPropertyFileLoginModule.class.getName());
     PropertyFileLoginModule module;
     UserInfo userInfo;
 
@@ -58,15 +61,15 @@ public class JettyAuthPropertyFileLoginModule extends AbstractSharedLoginModule 
 
 
     @Override
-    protected boolean authenticate(String sharedUserName, char[] chars) throws LoginException {
+    protected boolean authenticate(String userName, char[] chars) throws LoginException {
         try {
-            this.userInfo = module.getUserInfo(sharedUserName);
+            this.userInfo = module.getUserInfo(userName);
             if (null == this.userInfo) {
-                debug(String.format("JettyAuthPropertyFileLoginModule: got userInfo is null"));
+                debug(String.format("JettyAuthPropertyFileLoginModule: userInfo not found for %s", userName));
                 return false;
             }
             boolean b = this.userInfo.checkCredential(new String(chars));
-            debug(String.format("JettyAuthPropertyFileLoginModule: got userInfo, authenticatd? %s", b));
+            debug(String.format("JettyAuthPropertyFileLoginModule: checkCredential? %s", b));
             return b;
         } catch (Exception e) {
             if (isDebug()) {
@@ -97,5 +100,15 @@ public class JettyAuthPropertyFileLoginModule extends AbstractSharedLoginModule 
         userInfo = null;
 
         return super.logout();
+    }
+
+
+    /**
+     * Emit Debug message via System.err by default
+     *
+     * @param message
+     */
+    protected void debug(String message) {
+        logger.log(Level.INFO, message);
     }
 }

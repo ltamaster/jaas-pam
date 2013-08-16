@@ -1,15 +1,10 @@
 package com.simplifyops.jaas.pam;
 
-import org.mortbay.jetty.plus.jaas.JAASPrincipal;
-import org.mortbay.jetty.plus.jaas.JAASRole;
-import org.mortbay.jetty.plus.jaas.callback.ObjectCallback;
 import org.mortbay.jetty.plus.jaas.spi.PropertyFileLoginModule;
 import org.mortbay.jetty.plus.jaas.spi.UserInfo;
 
 import javax.security.auth.Subject;
-import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
@@ -17,33 +12,33 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Extends Jetty property file login module {@link PropertyFileLoginModule}, to ignore authentication via property file
  * login, but match the username with supplied Role lists from the property file.
  */
 public class JettyRolePropertyFileLoginModule extends AbstractSharedLoginModule {
+    public static final Logger logger = Logger.getLogger(JettyRolePropertyFileLoginModule.class.getName());
     PropertyFileLoginModule module;
     UserInfo userInfo;
 
     @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler, Map shared, Map options) {
         super.initialize(subject, callbackHandler, shared, options);
-        if(!isUseFirstPass() && !isTryFirstPass()) {
+        if (!isUseFirstPass() && !isTryFirstPass()) {
             throw new IllegalStateException("JettyRolePropertyFileLoginModule must have useFirstPass or tryFirstPass " +
                     "set to true");
         }
         module = new PropertyFileLoginModule();
         module.initialize(subject, callbackHandler, shared, options);
-        debug("JettyRolePropertyFileLoginModule: initialized");
     }
 
     protected Object[] getCallBackAuth() throws IOException, UnsupportedCallbackException, LoginException {
-        if(isHasSharedAuth()) {
-            debug("getCallBackAuth: has shared");
+        if (isHasSharedAuth()) {
             return new Object[]{getSharedUserName(), getSharedUserPass().toString().toCharArray()};
-        }else {
-            debug("getCallBackAuth: no shared");
+        } else {
             return new Object[]{null, null};
         }
     }
@@ -61,11 +56,12 @@ public class JettyRolePropertyFileLoginModule extends AbstractSharedLoginModule 
         ArrayList<Principal> roles = new ArrayList<Principal>();
         if (null != this.userInfo) {
             List roleNames = this.userInfo.getRoleNames();
+            debug(String.format("role names: %s", roleNames));
             for (Object roleName : roleNames) {
                 roles.add(createRolePrincipal(roleName.toString()));
             }
         }
-        debug("createRolePrincipals: "+roles);
+
         return roles;
     }
 
@@ -81,13 +77,23 @@ public class JettyRolePropertyFileLoginModule extends AbstractSharedLoginModule 
         }
         try {
             this.userInfo = module.getUserInfo(sharedUserName);
-            debug("JettyRolePropertyFileLoginModule: got userInfo for " + sharedUserName);
+            debug(String.format("JettyRolePropertyFileLoginModule: userInfo found for %s? %s", sharedUserName,
+                    this.userInfo != null));
         } catch (Exception e) {
             if (isDebug()) {
                 e.printStackTrace();
             }
         }
         return true;
+    }
+
+    /**
+     * Emit Debug message via System.err by default
+     *
+     * @param message
+     */
+    protected void debug(String message) {
+        logger.log(Level.INFO, message);
     }
 
     @Override
