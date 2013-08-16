@@ -13,5 +13,5 @@ dependencies {
     compile(
             [group: 'org.mortbay.jetty', name: 'jetty-plus', version: ext.jettyVersion, ext: 'jar'],
     )
-    compile( "org.kohsuke:libpam4j:1.7")
+    compile( "org.kohsuke:libpam4j:1.5")
 }
